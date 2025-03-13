@@ -15,6 +15,31 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads')); // Serve uploaded images
 
+// Statische Daten
+const orte = [
+    'Schafstädt King-Döner',
+    'Bad Lauchstädt Bosporos',
+    'Merseburg Star-Döner',
+    'Halle Neustadt Atlanta',
+    'Angersdorf Hayat'
+];
+  
+const produkte = {
+    'Döner': [
+      'Döner',
+      'Dürüm',
+      'Döner-Teller',
+      'Sonstiges'
+    ],
+    'Bier': [
+      'Ur-Krostitzer',
+      'Becks',
+      'Krombacher',
+      'Veltins'
+    ]
+};
+  
+
 // Multer für Bild-Uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -62,6 +87,21 @@ db.serialize(() => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+app.get('/api/orte', (req, res) => {
+    res.json(orte);
+});
+  
+app.get('/api/produkte/:produktart', (req, res) => {
+    const produktart = req.params.produktart;
+  
+    if (!produkte[produktart]) {
+      return res.status(404).json({ error: 'Produktart nicht gefunden' });
+    }
+  
+    res.json(produkte[produktart]);
+});
+  
 
 // Bewertung absenden
 app.post('/api/bewertung', upload.single('bild'), (req, res) => {
