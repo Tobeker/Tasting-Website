@@ -20,11 +20,9 @@ function initDatabase() {
                 produktart TEXT NOT NULL,
                 ort TEXT NOT NULL,
                 produkt TEXT NOT NULL,
-                geschmack INTEGER NOT NULL,
-                preis INTEGER NOT NULL,
-                aussehen INTEGER NOT NULL,
+                bewertungen TEXT NOT NULL,
                 bild TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
     });
@@ -34,15 +32,18 @@ function insertBewertung(bewertung) {
     return new Promise((resolve, reject) => {
         const stmt = `
             INSERT INTO bewertungen
-            (name, produktart, ort, produkt, geschmack, preis, aussehen, bild)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (name, produktart, ort, produkt, brot, fleisch, gemüse, sossen, preis, aussehen, bild)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const params = [
             bewertung.name,
             bewertung.produktart,
             bewertung.ort,
             bewertung.produkt,
-            bewertung.geschmack,
+            bewertung.brot,
+            bewertung.fleisch,
+            bewertung.gemüse,
+            bewertung.sossen,
             bewertung.preis,
             bewertung.aussehen,
             bewertung.bild
@@ -64,7 +65,10 @@ function getAuswertungen(ort, produkt) {
             SELECT
                 ort,
                 produkt,
-                AVG(geschmack) AS avg_geschmack,
+                AVG(brot) AS avg_brot,
+                AVG(fleisch) AS avg_fleisch,
+                AVG(gemüse) AS avg_gemüse,
+                AVG(sossen) AS avg_sossen,
                 AVG(preis) AS avg_preis,
                 AVG(aussehen) AS avg_aussehen,
                 COUNT(*) AS anzahl
@@ -82,7 +86,7 @@ function getAuswertungen(ort, produkt) {
             params.push(produkt);
         }
 
-        query += ' GROUP BY ort, produkt ORDER BY (avg_geschmack + avg_preis + avg_aussehen)/3 DESC';
+        query += ' GROUP BY ort, produkt ORDER BY (avg_brot + avg_fleisch + avg_gemüse + avg_sossen + avg_preis + avg_aussehen)/6 DESC';
 
         db.all(query, params, (err, rows) => {
             if (err) {

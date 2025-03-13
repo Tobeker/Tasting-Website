@@ -1,130 +1,189 @@
-const app = document.getElementById('app');
-
-let userName = '';
-let selectedProduct = '';
-
-// Dummy Daten für Dropdowns (können später per API kommen)
-const orte = ['Berlin', 'Hamburg', 'München'];
-const produkte = {
-    Döner: ['Mustafa\'s', 'Imren', 'Kotti'],
-    Bier: ['Augustiner', 'Becks', 'Berliner Kindl']
-};
-
-// Startseite
-function showLoginPage() {
-    app.innerHTML = `
-        <h1>Willkommen!</h1>
-        <label for="name">Bitte gib deinen Namen ein:</label>
-        <input type="text" id="name" placeholder="Dein Name" />
-        <button onclick="handleLogin()">Weiter</button>
-        <button onclick="showAuswertung()">Zur Auswertung</button>
-    `;
-}
-
-function handleLogin() {
-    const nameInput = document.getElementById('name');
-    userName = nameInput.value.trim();
-    if (userName === '') {
-        alert('Bitte gib deinen Namen ein!');
-        return;
+document.addEventListener('DOMContentLoaded', () => {
+    const appContainer = document.getElementById('app');
+  
+    // Dynamische Kriterien-Definition
+    const bewertungskriterien = {
+      'Döner': [
+        { name: 'brot', label: 'Brot' },
+        { name: 'fleisch', label: 'Gleisch' },
+        { name: 'gemüse', label: 'Gemüse' },
+        { name: 'sossen', label: 'Soßen' },
+        { name: 'preis', label: 'Preis-Leistung' },
+        { name: 'aussehen', label: 'Aussehen' }
+      ],
+      'Bier': [
+        { name: 'schaum', label: 'Schaum' },
+        { name: 'geruch', label: 'Geruch' },
+        { name: 'geschmack', label: 'Geschmack' },
+        { name: 'preis', label: 'Preis' }
+      ]
+    };
+  
+    let username = '';
+  
+    // Startbildschirm
+    function showStartPage() {
+      appContainer.innerHTML = `
+        <h1>Willkommen zur Bewertungsplattform!</h1>
+        <form id="nameForm">
+          <label for="username">Dein Name:</label>
+          <input type="text" id="username" name="username" required>
+          <button type="submit">Einloggen</button>
+        </form>
+        <button id="showStats">Auswertung ansehen</button>
+      `;
+  
+      document.getElementById('nameForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        username = document.getElementById('username').value.trim();
+        if (username) {
+          showProduktAuswahl();
+        }
+      });
+  
+      document.getElementById('showStats').addEventListener('click', showAuswertung);
     }
-    showProductSelection();
-}
-
-// Produktwahl
-function showProductSelection() {
-    app.innerHTML = `
-        <h2>Hallo ${userName}!</h2>
-        <p>Was möchtest du bewerten?</p>
-        <button onclick="handleProductSelection('Döner')">Döner</button>
-        <button onclick="handleProductSelection('Bier')">Bier</button>
-        <button onclick="showLoginPage()">Zurück</button>
-    `;
-}
-
-function handleProductSelection(product) {
-    selectedProduct = product;
-    showBewertungForm();
-}
-
-// Bewertungsformular
-function showBewertungForm() {
-    const ortOptions = orte.map(ort => `<option value="${ort}">${ort}</option>`).join('');
-    const produktOptions = produkte[selectedProduct].map(prod => `<option value="${prod}">${prod}</option>`).join('');
-
-    app.innerHTML = `
-        <h2>${selectedProduct} bewerten</h2>
-        <label for="ort">Ort:</label>
-        <select id="ort">${ortOptions}</select>
-
-        <label for="produkt">Produkt:</label>
-        <select id="produkt">${produktOptions}</select>
-
-        <label for="geschmack">Geschmack (1-10):</label>
-        <input type="number" id="geschmack" min="1" max="10" />
-
-        <label for="preis">Preis-Leistung (1-10):</label>
-        <input type="number" id="preis" min="1" max="10" />
-
-        <label for="aussehen">Aussehen (1-10):</label>
-        <input type="number" id="aussehen" min="1" max="10" />
-
+  
+    // Produktauswahl
+    function showProduktAuswahl() {
+      appContainer.innerHTML = `
+        <h2>Hi ${username}, was willst du bewerten?</h2>
+        <button onclick="selectProduktart('Döner')">Döner</button>
+        <button onclick="selectProduktart('Bier')">Bier</button>
+        <button onclick="showStartPage()">Zurück</button>
+      `;
+    }
+  
+    // Produktart auswählen
+    window.selectProduktart = function(produktart) {
+      appContainer.innerHTML = `
+        <h2>${produktart} bewerten</h2>
+        <form id="produktForm">
+          <label for="produkt">Produktname:</label>
+          <input type="text" id="produkt" name="produkt" required>
+  
+          <label for="ort">Ort:</label>
+          <input type="text" id="ort" name="ort" required>
+  
+          <button type="submit">Weiter zur Bewertung</button>
+        </form>
+        <button onclick="showProduktAuswahl()">Zurück</button>
+      `;
+  
+      document.getElementById('produktForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const produkt = document.getElementById('produkt').value.trim();
+        const ort = document.getElementById('ort').value.trim();
+        if (produkt && ort) {
+          showBewertungsformular(produktart, produkt, ort);
+        }
+      });
+    };
+  
+    // Bewertungsformular anzeigen
+    function showBewertungsformular(produktart, produkt, ort) {
+      const form = document.createElement('form');
+      form.id = 'bewertungForm';
+      form.enctype = 'multipart/form-data';
+  
+      let html = `<h2>${produktart} bewerten: ${produkt}</h2>`;
+      html += `<input type="hidden" name="produktart" value="${produktart}">`;
+      html += `<input type="hidden" name="produkt" value="${produkt}">`;
+      html += `<input type="hidden" name="ort" value="${ort}">`;
+      html += `<input type="hidden" name="name" value="${username}">`;
+  
+      // Dynamische Felder für die Kriterien
+      bewertungskriterien[produktart].forEach(kriterium => {
+        html += `
+          <label for="${kriterium.name}">${kriterium.label} (1-10):</label>
+          <input type="number" id="${kriterium.name}" name="${kriterium.name}" min="1" max="10" required>
+        `;
+      });
+  
+      // Bild-Upload
+      html += `
         <label for="bild">Bild hochladen (optional):</label>
-        <input type="file" id="bild" accept="image/*" />
-
-        <button onclick="submitBewertung()">Bewertung abschicken</button>
-        <button onclick="showProductSelection()">Zurück</button>
-    `;
-}
-
-function submitBewertung() {
-    const ort = document.getElementById('ort').value;
-    const produkt = document.getElementById('produkt').value;
-    const geschmack = document.getElementById('geschmack').value;
-    const preis = document.getElementById('preis').value;
-    const aussehen = document.getElementById('aussehen').value;
-    const bild = document.getElementById('bild').files[0];
-
-    if (!geschmack || !preis || !aussehen) {
-        alert('Bitte alle Bewertungen ausfüllen!');
-        return;
+        <input type="file" id="bild" name="bild" accept="image/*">
+      `;
+  
+      html += `<button type="submit">Bewertung absenden</button>`;
+      html += `<button type="button" onclick="showProduktAuswahl()">Zurück</button>`;
+  
+      form.innerHTML = html;
+      appContainer.innerHTML = '';
+      appContainer.appendChild(form);
+  
+      form.addEventListener('submit', submitBewertung);
     }
-
-    const formData = new FormData();
-    formData.append('name', userName);
-    formData.append('produktart', selectedProduct);
-    formData.append('ort', ort);
-    formData.append('produkt', produkt);
-    formData.append('geschmack', geschmack);
-    formData.append('preis', preis);
-    formData.append('aussehen', aussehen);
-    if (bild) {
-        formData.append('bild', bild);
-    }
-
-    fetch('/api/bewertung', {
+  
+    // Bewertung absenden
+    function submitBewertung(e) {
+      e.preventDefault();
+  
+      const form = document.getElementById('bewertungForm');
+      const formData = new FormData(form);
+  
+      fetch('/api/bewertung', {
         method: 'POST',
         body: formData
-    }).then(response => {
-        if (response.ok) {
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
             alert('Bewertung gespeichert!');
-            showProductSelection();
-        } else {
-            alert('Fehler beim Speichern!');
-        }
-    });
-}
-
-// Auswertungsseite (Platzhalter)
-function showAuswertung() {
-    app.innerHTML = `
+            showProduktAuswahl();
+          } else {
+            alert('Fehler beim Speichern.');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Netzwerkfehler!');
+        });
+    }
+  
+    // Auswertung anzeigen
+    function showAuswertung() {
+      fetch('/api/auswertung')
+        .then(res => res.json())
+        .then(data => {
+          renderAuswertung(data);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Fehler beim Laden der Auswertung!');
+        });
+    }
+  
+    // Darstellung der Auswertung
+    function renderAuswertung(bewertungen) {
+      appContainer.innerHTML = `
         <h2>Auswertung</h2>
-        <p>(Hier kommt später das Balkendiagramm!)</p>
-        <button onclick="showLoginPage()">Zurück</button>
-    `;
-
-    // TODO: Chart.js Diagramm nach Backend-Integration
-}
-
-// Start mit Login-Seite
-showLoginPage();
+        <button onclick="showStartPage()">Zurück</button>
+        <div id="charts"></div>
+      `;
+  
+      const chartsContainer = document.getElementById('charts');
+  
+      if (bewertungen.length === 0) {
+        chartsContainer.innerHTML = '<p>Noch keine Bewertungen vorhanden.</p>';
+        return;
+      }
+  
+      // Beispiel-Darstellung
+      bewertungen.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('auswertung-item');
+        div.innerHTML = `
+          <h3>${item.produktart} - ${item.produkt} (${item.ort})</h3>
+          <p>Durchschnittswerte:</p>
+          <pre>${JSON.stringify(item.durchschnitt, null, 2)}</pre>
+        `;
+        chartsContainer.appendChild(div);
+      });
+    }
+  
+    // Startseite anzeigen beim Laden
+    showStartPage();
+  });
+  
