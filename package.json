@@ -1,0 +1,30 @@
+{
+  "name": "tasting-website",
+  "version": "1.0.0",
+  "description": "Ursprungsidee: Döner in der Umgebung sollen ausgiebig getestet und dokumentiert werden können..",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tobeker/Tasting-Website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tobeker/Tasting-Website/issues"
+  },
+  "homepage": "https://github.com/Tobeker/Tasting-Website#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
